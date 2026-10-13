@@ -2,7 +2,8 @@ import AppKit
 import Carbon.HIToolbox
 
 /// Covers what keeps a stored or recorded shortcut from being registered system-wide when it
-/// should not be. Uses a scratch preferences suite; no fixtures needed.
+/// should not be. Uses a scratch preferences suite; the one localized key name is read from
+/// the catalog compiled to build/Localizations, which `make test` provides.
 enum HotkeyTests {
     static let suite = "com.sebastianscholz.DeskHide.tests.hotkey"
 
@@ -26,7 +27,11 @@ enum HotkeyTests {
             expect(hotkey?.description == "⇧⌘H")
         }
         testCase("keys without a printable character get a name") {
-            expect(Hotkey(keyCode: kVK_Space, modifiers: [.control, .option], key: " ")?.description == "⌃⌥Leertaste")
+            let space = Hotkey(keyCode: kVK_Space, modifiers: [.control, .option], key: " ")
+            for (language, name) in [("de", "Leertaste"), ("en", "Space")] {
+                localizationBundle = Bundle(path: "build/Localizations/\(language).lproj") ?? .main
+                expect(space?.description == "⌃⌥" + name)
+            }
             expect(Hotkey(keyCode: kVK_F5, modifiers: [.option, .command], key: "\u{F708}")?.description == "⌥⌘F5")
         }
         testCase("a recorded shortcut survives saving and loading") {

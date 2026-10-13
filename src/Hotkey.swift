@@ -40,7 +40,7 @@ struct Hotkey: Equatable {
 
     /// Reads the way the menu shows it, e.g. "⌃⌥⌘D".
     var description: String {
-        let keyName = Self.keyNames[Int(keyCode)] ?? key.uppercased()
+        let keyName = Int(keyCode) == kVK_Space ? L("key.space") : Self.keyNames[Int(keyCode)] ?? key.uppercased()
         return Self.symbols.filter { modifiers.contains($0.flag) }.map(\.symbol).joined() + keyName
     }
 
@@ -48,9 +48,10 @@ struct Hotkey: Equatable {
         (.control, controlKey, "⌃"), (.option, optionKey, "⌥"), (.shift, shiftKey, "⇧"), (.command, cmdKey, "⌘"),
     ]
 
-    // Keys whose key equivalent is not a printable character.
+    // Keys whose key equivalent is not a printable character. Space is the only one with a
+    // name rather than a symbol, so it comes from the string catalog instead.
     private static let keyNames: [Int: String] = [
-        kVK_Space: "Leertaste", kVK_Return: "↩", kVK_Tab: "⇥", kVK_Delete: "⌫", kVK_Escape: "⎋",
+        kVK_Return: "↩", kVK_Tab: "⇥", kVK_Delete: "⌫", kVK_Escape: "⎋",
         kVK_LeftArrow: "←", kVK_RightArrow: "→", kVK_UpArrow: "↑", kVK_DownArrow: "↓",
         kVK_F1: "F1", kVK_F2: "F2", kVK_F3: "F3", kVK_F4: "F4", kVK_F5: "F5", kVK_F6: "F6",
         kVK_F7: "F7", kVK_F8: "F8", kVK_F9: "F9", kVK_F10: "F10", kVK_F11: "F11", kVK_F12: "F12",

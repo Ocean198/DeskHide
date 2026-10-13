@@ -14,11 +14,17 @@ func expect(_ condition: Bool, file: String = #fileID, line: Int = #line) {
     print("  expectation failed at \(file):\(line)")
 }
 
+func fail(_ message: String) {
+    failures += 1
+    print("  \(message)")
+}
+
 @main
 struct TestRunner {
     static func main() {
         DesktopSettingsTests.run()
         HotkeyTests.run()
+        LocalizationTests.run()
         print(failures == 0 ? "All tests passed." : "\(failures) expectation(s) failed.")
         exit(failures == 0 ? 0 : 1)
     }

@@ -3,6 +3,7 @@ VERSION := $(shell /usr/libexec/PlistBuddy -c "Print :CFBundleShortVersionString
 BUNDLE  := build/$(APP).app
 BINARY  := $(BUNDLE)/Contents/MacOS/$(APP)
 ZIP     := dist/$(APP)-$(VERSION).zip
+STRINGS := build/Localizations
 SWIFTC  := swiftc -O -swift-version 5 -target arm64-apple-macos14.0
 PREFIX  ?= /Applications
 
@@ -17,17 +18,26 @@ NOTARY_PROFILE ?= DeskHide
 
 build: $(BINARY)
 
+# The string catalog holds every language in one file; this turns it into the .lproj folders
+# macOS reads at run time.
+$(STRINGS)/.compiled: assets/Localizable.xcstrings
+	rm -rf $(STRINGS)
+	mkdir -p $(STRINGS)
+	xcrun xcstringstool compile $< --output-directory $(STRINGS)
+	touch $@
+
 # Signed with the hardened runtime: no injected libraries, no debugger attaching.
-$(BINARY): $(wildcard src/*.swift) config/Info.plist assets/AppIcon.icns Makefile
+$(BINARY): $(wildcard src/*.swift) config/Info.plist assets/AppIcon.icns $(STRINGS)/.compiled Makefile
+	rm -rf $(BUNDLE)
 	mkdir -p $(dir $@) $(BUNDLE)/Contents/Resources
 	$(SWIFTC) src/*.swift -o $@
 	cp config/Info.plist $(BUNDLE)/Contents/Info.plist
 	cp assets/AppIcon.icns $(BUNDLE)/Contents/Resources/AppIcon.icns
+	cp -R $(STRINGS)/*.lproj $(BUNDLE)/Contents/Resources/
 	codesign --force --options runtime $(if $(IDENTITY),--timestamp --sign "$(IDENTITY)",--sign -) $(BUNDLE)
 
-test:
-	mkdir -p build
-	$(SWIFTC) -parse-as-library src/DesktopSettings.swift src/Hotkey.swift tests/*.swift -o build/tests
+test: $(STRINGS)/.compiled
+	$(SWIFTC) -parse-as-library src/DesktopSettings.swift src/Hotkey.swift src/Localization.swift tests/*.swift -o build/tests
 	build/tests
 
 # SIGTERM lets a running copy restore the icons before it is replaced.
@@ -53,10 +63,9 @@ icon:
 	swiftc -O scripts/make-icon.swift -o build/make-icon
 	build/make-icon assets
 
-screenshots:
-	mkdir -p build
-	swiftc -O -swift-version 5 -parse-as-library scripts/make-screenshots.swift src/Onboarding.swift -o build/make-screenshots
-	build/make-screenshots assets
+screenshots: $(STRINGS)/.compiled
+	swiftc -O -swift-version 5 -parse-as-library scripts/make-screenshots.swift src/Onboarding.swift src/Localization.swift -o build/make-screenshots
+	build/make-screenshots assets $(STRINGS)/en.lproj
 
 clean:
 	rm -rf build dist

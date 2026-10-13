@@ -22,38 +22,32 @@ final class Onboarding: NSObject, NSWindowDelegate {
         tile.widthAnchor.constraint(equalToConstant: 88).isActive = true
         tile.heightAnchor.constraint(equalToConstant: 88).isActive = true
 
-        let title = Self.label("Willkommen bei DeskHide", font: .systemFont(ofSize: 22, weight: .bold))
-        let subtitle = Self.label("Blendet deine Schreibtischsymbole für saubere Screenshots aus – und wieder ein.",
-                                  font: .systemFont(ofSize: 13), color: .secondaryLabelColor)
+        let title = Self.label(L("onboarding.title"), font: .systemFont(ofSize: 22, weight: .bold))
+        let subtitle = Self.label(L("onboarding.subtitle"), font: .systemFont(ofSize: 13), color: .secondaryLabelColor)
         title.alignment = .center
         subtitle.alignment = .center
         let header = Self.stack([tile, title, subtitle], alignment: .centerX, spacing: 8)
         header.setCustomSpacing(10, after: tile)
 
         let steps = Self.stack([
-            Self.step("keyboard", "\(hotkey) schaltet um",
-                      "Einmal drücken blendet aus, noch einmal drücken blendet wieder ein."),
-            Self.step("menubar.rectangle", "Das Auge in der Menüleiste",
-                      "Zeigt den Zustand und enthält alle Optionen – auch das Tastenkürzel lässt sich dort ändern."),
-            Self.step("checkmark.shield", "Nichts geht verloren",
-                      "Es wird nur ausgeblendet, nie gelöscht oder verschoben. Beim Beenden ist alles wieder da."),
+            Self.step("keyboard", L("onboarding.shortcut.title", hotkey), L("onboarding.shortcut.text")),
+            Self.step("menubar.rectangle", L("onboarding.menu.title"), L("onboarding.menu.text")),
+            Self.step("checkmark.shield", L("onboarding.safe.title"), L("onboarding.safe.text")),
         ], alignment: .leading, spacing: 14)
 
-        let thoroughBox = NSButton(checkboxWithTitle: "Vollständig ausblenden", target: self,
+        let thoroughBox = NSButton(checkboxWithTitle: L("onboarding.thorough"), target: self,
                                    action: #selector(thoroughChanged))
         thoroughBox.state = thorough ? .on : .off
-        let thoroughNote = Self.label(
-            "Hält die Symbole auch bei „Schreibtisch einblenden“ und aktiven Ecken verborgen. "
-                + "Dafür startet der Finder bei jedem Umschalten kurz neu.",
-            font: .systemFont(ofSize: 11), color: .secondaryLabelColor, width: Self.textWidth - 20)
-        let loginBox = NSButton(checkboxWithTitle: "Beim Anmelden starten", target: self,
+        let thoroughNote = Self.label(L("option.thorough.note"), font: .systemFont(ofSize: 11),
+                                      color: .secondaryLabelColor, width: Self.textWidth - 20)
+        let loginBox = NSButton(checkboxWithTitle: L("onboarding.login"), target: self,
                                 action: #selector(loginChanged))
         loginBox.state = launchAtLogin ? .on : .off
         let options = Self.stack([thoroughBox, Self.indented(thoroughNote, by: 20), loginBox],
                                  alignment: .leading, spacing: 4)
         options.setCustomSpacing(12, after: options.views[1])
 
-        let done = NSButton(title: "Los geht’s", target: window, action: #selector(NSWindow.close))
+        let done = NSButton(title: L("onboarding.done"), target: window, action: #selector(NSWindow.close))
         done.keyEquivalent = "\r"
         done.controlSize = .large
 

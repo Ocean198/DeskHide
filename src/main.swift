@@ -7,9 +7,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     private let defaults = UserDefaults.standard
     private let statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
     private let toggleItem = NSMenuItem(title: "", action: #selector(toggle), keyEquivalent: "")
-    private let widgetsItem = NSMenuItem(title: "Widgets ebenfalls ausblenden", action: #selector(toggleWidgets), keyEquivalent: "")
-    private let thoroughItem = NSMenuItem(title: "Vollständig ausblenden (Finder-Neustart)", action: #selector(toggleThorough), keyEquivalent: "")
-    private let loginItem = NSMenuItem(title: "Beim Anmelden starten", action: #selector(toggleLogin), keyEquivalent: "")
+    private let widgetsItem = NSMenuItem(title: L("menu.widgets"), action: #selector(toggleWidgets), keyEquivalent: "")
+    private let thoroughItem = NSMenuItem(title: L("menu.thorough"), action: #selector(toggleThorough), keyEquivalent: "")
+    private let loginItem = NSMenuItem(title: L("menu.login"), action: #selector(toggleLogin), keyEquivalent: "")
     private let termination = DispatchSource.makeSignalSource(signal: SIGTERM, queue: .main)
     private var hotkey = Hotkey(defaults: .standard)
     private var hotKeyRef: EventHotKeyRef?
@@ -19,11 +19,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     func applicationDidFinishLaunching(_ notification: Notification) {
         let menu = NSMenu()
         menu.delegate = self
-        let hotkeyItem = NSMenuItem(title: "Tastenkürzel ändern …", action: #selector(recordHotkey), keyEquivalent: "")
-        let onboardingItem = NSMenuItem(title: "Einführung anzeigen", action: #selector(showOnboarding), keyEquivalent: "")
-        let quitItem = NSMenuItem(title: "DeskHide beenden", action: #selector(NSApplication.terminate), keyEquivalent: "q")
-        thoroughItem.toolTip = "Hält die Symbole auch bei „Schreibtisch einblenden“ und aktiven Ecken verborgen. "
-            + "Dafür startet der Finder bei jedem Umschalten kurz neu."
+        let hotkeyItem = NSMenuItem(title: L("menu.shortcut"), action: #selector(recordHotkey), keyEquivalent: "")
+        let onboardingItem = NSMenuItem(title: L("menu.introduction"), action: #selector(showOnboarding), keyEquivalent: "")
+        let quitItem = NSMenuItem(title: L("menu.quit"), action: #selector(NSApplication.terminate), keyEquivalent: "q")
+        thoroughItem.toolTip = L("option.thorough.note")
         for item in [toggleItem, .separator(), widgetsItem, thoroughItem, hotkeyItem, loginItem,
                      .separator(), onboardingItem, quitItem] {
             if item !== quitItem { item.target = self }
@@ -67,8 +66,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     private func refreshStatus() {
         let hidden = desktop.iconsHidden
         statusItem.button?.image = NSImage(systemSymbolName: hidden ? "eye.slash" : "eye",
-                                           accessibilityDescription: "Schreibtischsymbole")
-        toggleItem.title = hidden ? "Schreibtischsymbole einblenden" : "Schreibtischsymbole ausblenden"
+                                           accessibilityDescription: L("status.accessibility"))
+        toggleItem.title = hidden ? L("menu.show") : L("menu.hide")
     }
 
     @objc private func toggle() {
@@ -103,7 +102,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
                 try SMAppService.mainApp.unregister()
             }
         } catch {
-            alert("Anmeldeobjekt konnte nicht geändert werden", error.localizedDescription)
+            alert(L("alert.login.title"), error.localizedDescription)
         }
         return SMAppService.mainApp.status == .enabled
     }
@@ -114,9 +113,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         let widgets = defaults.bool(forKey: "includeWidgets")
         if desktop.setHidden(hidden, includingWidgets: widgets, viaFinder: viaFinder), !Finder.relaunch() {
             desktop.setHidden(before.hidden, includingWidgets: widgets, viaFinder: before.viaFinder)
-            alert("Der Finder ließ sich nicht neu starten",
-                  "Vermutlich läuft dort gerade ein Kopiervorgang. Die Schreibtischsymbole bleiben unverändert – "
-                  + "versuch es danach noch einmal.")
+            alert(L("alert.finder.title"), L("alert.finder.text"))
         }
         refreshStatus()
     }
@@ -152,9 +149,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         let id = EventHotKeyID(signature: OSType(0x4453_4B48), id: 1)  // 'DSKH'
         let status = RegisterEventHotKey(hotkey.keyCode, hotkey.carbonModifiers, id, GetApplicationEventTarget(), 0, &hotKeyRef)
         if status != noErr {
-            alert("Tastenkürzel nicht verfügbar",
-                  "\(hotkey.description) wird bereits von einem anderen Programm verwendet. "
-                  + "Wähle über „Tastenkürzel ändern …“ eine andere Kombination.")
+            alert(L("alert.shortcut.title"), L("alert.shortcut.text", hotkey.description))
         }
     }
 
@@ -166,9 +161,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     @objc private func recordHotkey() {
         unregisterHotkey()  // otherwise pressing the current combination would toggle instead of being recorded
         let prompt = NSAlert()
-        prompt.messageText = "Neues Tastenkürzel"
-        prompt.informativeText = "Drücke die gewünschte Kombination – mit mindestens zwei der Tasten ⌃ ⌥ ⇧ ⌘."
-        prompt.addButton(withTitle: "Abbrechen")
+        prompt.messageText = L("recorder.title")
+        prompt.informativeText = L("recorder.text")
+        prompt.addButton(withTitle: L("button.cancel"))
         let monitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [weak self] event in
             guard let recorded = Hotkey(keyCode: Int(event.keyCode), modifiers: event.modifierFlags,
                                         key: event.charactersIgnoringModifiers ?? "") else { return event }
