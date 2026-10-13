@@ -1,93 +1,108 @@
 # DeskHide
 
-![Schreibtisch vorher mit und nachher ohne Symbole](assets/screenshots/1-vorher-nachher.png)
+![A desktop before, full of icons, and after, without any](assets/screenshots/1-before-after.png)
 
-Blendet per Tastenkürzel alle Schreibtischsymbole aus und wieder ein – für saubere Screenshots.
-Es wird nichts verschoben oder gelöscht: Die App schaltet nur die Systemeinstellung
-„Schreibtisch & Dock › Objekte anzeigen: Auf dem Schreibtisch“ um. Der Finder läuft dabei weiter.
+DeskHide hides every icon on your Mac's desktop with a keyboard shortcut and brings them back the
+same way – handy for clean screenshots, screen recordings and presentations. Nothing is moved or
+deleted; the icons are only taken out of view.
 
-**[DeskHide herunterladen](https://github.com/Ocean198/DeskHide/releases/latest)** – kostenlos, für Macs
-mit Apple-Chip und macOS 14 oder neuer. ZIP entpacken, DeskHide in „Programme“ ziehen, öffnen. Die App
-ist von Apple notarisiert.
+**[Download DeskHide](https://github.com/Ocean198/DeskHide/releases/latest)** – free, for Macs with
+Apple silicon running macOS 14 or later. Unzip, drag DeskHide to Applications, open it. The app is
+notarized by Apple.
 
-Entwickelt und getestet wurde auf macOS 27. Sollte das sofortige Ausblenden auf einer anderen
-Version nicht greifen, hilft die Option „Vollständig ausblenden“ (siehe unten).
+DeskHide was developed and tested on macOS 27. If hiding instantly does not work on another version,
+use the "Hide Completely" option described below.
 
-macOS blendet die Objekte nur aus, wenn „Klick auf Hintergrundbild zeigt Schreibtisch“ auf „Immer“
-steht. DeskHide stellt das beim Ausblenden selbst so ein und beim Einblenden wieder zurück.
-Daraus folgt: Solange die Symbole ausgeblendet sind, holt „Schreibtisch einblenden“ (aktive Ecke,
-Geste, Klick auf das Hintergrundbild) sie vorübergehend zurück.
+## How it works
 
-Wer das nicht möchte, aktiviert im Menü **„Vollständig ausblenden (Finder-Neustart)“**. Dann zeichnet
-der Finder gar keinen Schreibtisch mehr, und die Symbole bleiben auch bei „Schreibtisch einblenden“
-weg. Der Preis: Bei jedem Umschalten startet der Finder kurz neu (1–2 Sekunden, offene Finder-Fenster
-schließen sich). Läuft im Finder gerade ein Kopiervorgang, bricht DeskHide das Umschalten ab, statt
-ihn zu unterbrechen.
+There are two ways of hiding, and you choose between them in the menu.
 
-## Bedienung
+**Instantly (default).** DeskHide flips the system setting behind "Desktop & Dock › Show Items: On
+Desktop". Finder keeps running and the change takes effect at once. macOS only honours that setting
+while "Click wallpaper to reveal desktop" is set to "Always", so DeskHide switches that on while the
+icons are hidden and puts your own choice back afterwards. One consequence: anything that reveals the
+desktop – a hot corner, the trackpad gesture, a click on the wallpaper – brings the icons back for as
+long as the desktop is revealed.
 
-Beim ersten Start erklärt ein kurzes Einführungsfenster das Wichtigste; über „Einführung anzeigen“
-im Menü lässt es sich jederzeit wieder öffnen.
+**Hide Completely (Restarts Finder).** Finder stops drawing a desktop at all, so the icons stay away
+even when the desktop is revealed. The price is that Finder restarts every time you toggle, which
+takes about a second and closes open Finder windows. If Finder is busy copying files, DeskHide leaves
+everything as it is and tells you, rather than interrupting the copy.
 
-- **⌃⌥⌘D** schaltet um (änderbar im Menü unter „Tastenkürzel ändern …“).
-- Das Augen-Symbol in der Menüleiste zeigt den Zustand und enthält alle Optionen:
-  Widgets ebenfalls ausblenden, Tastenkürzel ändern, beim Anmelden starten, beenden.
-- Beim Beenden blendet die App die Symbole automatisch wieder ein.
+## Using it
 
-Sollten die Symbole einmal ausgeblendet bleiben (z. B. nach einem Absturz): App erneut starten und
-Tastenkürzel drücken. Ohne die App hilft im Normalfall der oben genannte Schalter in den
-Systemeinstellungen, nach „Vollständig ausblenden“ dieser Befehl im Terminal:
+A short introduction explains the essentials on first launch. You can open it again at any time with
+"Show Introduction" in the menu.
+
+- **⌃⌥⌘D** toggles the icons. Change it with "Change Shortcut…" in the menu.
+- The eye in the menu bar shows the current state and holds all options: also hide widgets, hide
+  completely, change the shortcut, launch at login, quit.
+- Quitting DeskHide brings the icons back automatically.
+
+Should the icons ever stay hidden, for instance after a crash, open DeskHide again and press the
+shortcut. Without the app, turn "Show Items: On Desktop" back on in System Settings, or, after
+"Hide Completely", run this in Terminal:
 
 ```bash
 defaults delete com.apple.finder CreateDesktop; killall Finder
 ```
 
-## Sicherheit und Ressourcen
+## Languages
 
-- Braucht keine Berechtigungen (keine Bedienungshilfen, keine Bildschirmaufnahme, keine Automation)
-  und baut keine Netzwerkverbindungen auf.
-- Schreibt ausschließlich Einstellungen: die eigenen, die drei Schreibtisch-Schalter von macOS und
-  `CreateDesktop` des Finders. Dateien werden nie angefasst.
-- Tastenkürzel werden beim Aufnehmen und beim Laden geprüft; ohne mindestens zwei Sondertasten wird
-  nichts systemweit registriert.
-- Im Leerlauf 0 % CPU, rund 20 MB Speicher; ein Umschalten dauert unter einer Millisekunde
-  (mit Finder-Neustart unter einer Sekunde).
+DeskHide follows the language of your Mac and is available in English, German, French, Spanish,
+Italian, Portuguese (Brazil), Japanese, Simplified Chinese, Korean and Russian. Any other system
+language gets English.
 
-## Bauen
+All texts live in a single string catalog, `assets/Localizable.xcstrings`, which opens in Xcode.
+Apart from English and German the translations have not been reviewed by native speakers –
+corrections are welcome.
 
-Benötigt die Xcode-Kommandozeilenwerkzeuge und macOS 14 oder neuer. DeskHide läuft ausschließlich auf
-Macs mit Apple-Chip.
+## Security and footprint
 
-Liegt ein „Developer ID Application“-Zertifikat im Schlüsselbund, wird damit signiert, sonst nur lokal
-(ad hoc). `make dist` braucht zusätzlich einmalig die Zugangsdaten für die Notarisierung:
+- Needs no permissions (no Accessibility, no Screen Recording, no Automation) and makes no network
+  connections.
+- Only ever writes settings: its own, the three desktop switches of macOS, and Finder's
+  `CreateDesktop`. Files are never touched.
+- Shortcuts are validated when recorded and when loaded; nothing with fewer than two modifier keys is
+  registered system-wide.
+- Idles at 0 % CPU and about 20 MB of memory. Toggling takes less than a millisecond, or under a
+  second when Finder restarts.
+
+## Building
+
+Requires the Xcode command line tools on a Mac with Apple silicon.
+
+A "Developer ID Application" certificate in the keychain is used for signing if there is one;
+otherwise the app is signed ad hoc, which runs on your own Mac only. `make dist` additionally needs
+notarization credentials, stored once with:
 
 ```bash
-xcrun notarytool store-credentials DeskHide --team-id <Team-ID>
+xcrun notarytool store-credentials DeskHide --team-id <your team ID>
 ```
 
-| Befehl         | Wirkung                                          |
-| -------------- | ------------------------------------------------ |
-| `make build`   | erzeugt `build/DeskHide.app`                     |
-| `make test`    | testet die Umschaltlogik in einer Test-Domain    |
-| `make install` | kopiert die App nach `/Applications` und startet sie |
-| `make dist`    | notarisiert die App bei Apple und erzeugt `dist/DeskHide-<Version>.zip` |
-| `make icon`    | zeichnet das App-Symbol neu (`scripts/make-icon.swift`) |
-| `make screenshots` | rendert die Store-Screenshots neu (`scripts/make-screenshots.swift`) |
-| `make clean`   | entfernt `build/` und `dist/`                    |
+| Command            | What it does                                                        |
+| ------------------ | ------------------------------------------------------------------- |
+| `make build`       | builds `build/DeskHide.app`                                         |
+| `make test`        | runs the tests against scratch preference domains                   |
+| `make install`     | copies the app to `/Applications` and opens it                      |
+| `make dist`        | has Apple notarize the app and writes `dist/DeskHide-<version>.zip` |
+| `make icon`        | redraws the app icon (`scripts/make-icon.swift`)                    |
+| `make screenshots` | re-renders the screenshots (`scripts/make-screenshots.swift`)       |
+| `make clean`       | removes `build/` and `dist/`                                        |
 
-## Symbol und Screenshots
+## Icon and screenshots
 
-Beides liegt in `assets/` und wird per Skript gezeichnet, nicht von Hand gepflegt:
+Both live in `assets/` and are drawn by script rather than maintained by hand:
 
-- `AppIcon.icns` steckt in der App, `AppIcon.appiconset/` enthält dieselben zehn Größen (16 bis
-  1024 px) für einen Xcode-Asset-Katalog, `AppIcon-1024.png` ist die Vorlage in voller Größe.
-- `screenshots/` enthält drei Bilder in 2880 × 1800 ohne Alphakanal, dem größten Format, das der
-  Mac App Store annimmt. Schreibtisch und Menü darin sind gezeichnet, das Einführungsfenster ist
-  die echte Ansicht der App.
+- `AppIcon.icns` ships in the app, `AppIcon.appiconset/` holds the same ten sizes (16 to 1024 px) for
+  an Xcode asset catalog, and `AppIcon-1024.png` is the full-size master.
+- `screenshots/` holds three images at 2880 × 1800 without alpha channel, the largest size the Mac
+  App Store accepts. The desktop in them is drawn; the menu and the introduction window show the
+  app's real texts.
 
-In den Mac App Store kann DeskHide in dieser Form nicht: Dort ist die App-Sandbox Pflicht, und die
-erlaubt weder das Ändern der Schreibtisch-Einstellungen noch den Finder-Neustart.
+DeskHide cannot be distributed through the Mac App Store in this form: the App Sandbox required
+there allows neither changing the desktop settings nor restarting Finder.
 
-## Lizenz
+## License
 
-MIT – siehe [LICENSE](LICENSE).
+MIT – see [LICENSE](LICENSE).

@@ -1,6 +1,6 @@
 // Renders the Mac App Store screenshots (2880 × 1800, no alpha) without touching the real
 // screen: a drawn desktop, the app's real onboarding view and a redrawn copy of its menu.
-// Usage: make-screenshots <assets directory>
+// Usage: make-screenshots <assets directory> <compiled .lproj to take the app's texts from>
 import AppKit
 import UniformTypeIdentifiers
 
@@ -23,10 +23,15 @@ struct MakeScreenshots {
         let output = assets.appendingPathComponent("screenshots")
         try FileManager.default.createDirectory(at: output, withIntermediateDirectories: true)
         let appIcon = NSImage(contentsOf: assets.appendingPathComponent("AppIcon-1024.png")) ?? NSImage()
+        // The headlines below are English only; everything shown inside the app comes from the
+        // string catalog, so menu and onboarding always match what the app really says.
+        if CommandLine.arguments.count > 2, let strings = Bundle(path: CommandLine.arguments[2]) {
+            localizationBundle = strings
+        }
 
-        try render(to: output.appendingPathComponent("1-vorher-nachher.png"),
-                   title: "Aufgeräumt auf Tastendruck.",
-                   subtitle: "DeskHide blendet alle Schreibtischsymbole aus – und genauso schnell wieder ein.",
+        try render(to: output.appendingPathComponent("1-before-after.png"),
+                   title: "A clean desktop at a keystroke.",
+                   subtitle: "DeskHide hides every icon on your desktop – and brings them back just as fast.",
                    pointScale: 2240 / screen.width, viewport: .zero) { ctx in
             wallpaper()
             desktopIcons(count: 30, in: CGRect(x: 0, y: 0, width: screen.width / 2 - 24, height: screen.height),
@@ -35,9 +40,9 @@ struct MakeScreenshots {
             comparisonDivider()
         }
 
-        try render(to: output.appendingPathComponent("2-menue.png"),
-                   title: "Alles Wichtige in der Menüleiste.",
-                   subtitle: "Widgets mit ausblenden, Tastenkürzel ändern, beim Anmelden starten.",
+        try render(to: output.appendingPathComponent("2-menu.png"),
+                   title: "Everything lives in the menu bar.",
+                   subtitle: "Hide widgets as well, change the shortcut, launch at login.",
                    pointScale: 2.6, viewport: CGPoint(x: screen.width - 2240 / 2.6, y: 0)) { _ in
             wallpaper()
             documentWindow(CGRect(x: 610, y: 270, width: 440, height: 330))
@@ -45,9 +50,9 @@ struct MakeScreenshots {
             appMenu()
         }
 
-        try render(to: output.appendingPathComponent("3-einfuehrung.png"),
-                   title: "In Sekunden startklar.",
-                   subtitle: "Eine kurze Einführung, zwei Optionen – fertig.",
+        try render(to: output.appendingPathComponent("3-introduction.png"),
+                   title: "Ready in seconds.",
+                   subtitle: "A short introduction, two options – done.",
                    display: CGSize(width: 1120, height: 700), pointScale: 2, viewport: .zero) { _ in
             // A smaller display at twice the size keeps the window's text readable in the store.
             let center = CGPoint(x: screen.width / 2, y: menuBarHeight + 325)
@@ -125,15 +130,15 @@ struct MakeScreenshots {
         CGRect(x: 0, y: 0, width: screen.width, height: menuBarHeight).fill()
 
         var x: CGFloat = 20
-        for (index, title) in ["\u{F8FF}", "Finder", "Ablage", "Bearbeiten", "Darstellung", "Gehe zu", "Fenster", "Hilfe"].enumerated() {
+        for (index, title) in ["\u{F8FF}", "Finder", "File", "Edit", "View", "Go", "Window", "Help"].enumerated() {
             let font = NSFont.systemFont(ofSize: index == 0 ? 16 : 13.5, weight: index == 1 ? .bold : .medium)
             x += text(title, font: font, color: .white, in: CGRect(x: x, y: index == 0 ? 5 : 6.5, width: 200, height: 20)) + 20
         }
 
         var right = screen.width - 18
-        right -= 122
-        text("Di. 13. Okt.  09:41", font: .systemFont(ofSize: 13.5, weight: .medium), color: .white,
-             in: CGRect(x: right, y: 6.5, width: 122, height: 20), alignment: .right)
+        right -= 132
+        text("Tue Oct 13  9:41 AM", font: .systemFont(ofSize: 13.5, weight: .medium), color: .white,
+             in: CGRect(x: right, y: 6.5, width: 132, height: 20), alignment: .right)
         for name in ["switch.2", "magnifyingglass", "wifi", "battery.75percent"] {
             right -= 34
             symbol(name, pointSize: 14, color: .white, centeredIn: CGRect(x: right, y: 0, width: 30, height: menuBarHeight))
@@ -153,16 +158,16 @@ struct MakeScreenshots {
         // Only types that keep Apple's generic icon. PDF, for one, shows the artwork of
         // whichever app has claimed it – on this Mac that would be Adobe's.
         let items: [(UTType, String)] = [
-            (.folder, "Projekte"), (.png, "Bildschirmfoto 2026-10-12.png"), (.plainText, "Notizen.txt"),
-            (.folder, "Kunden"), (.jpeg, "Moodboard.jpg"), (.zip, "Archiv.zip"), (.rtf, "Briefing.rtf"),
-            (.folder, "Export"), (.png, "Logo_v3.png"), (.mpeg4Movie, "Teaser.mp4"), (.commaSeparatedText, "Zeiten.csv"),
-            (.folder, "Alt"), (.jpeg, "IMG_2041.jpg"), (.png, "Icon-Entwurf.png"), (.plainText, "Todo.txt"),
-            (.folder, "Fotos"), (.rtf, "Angebot.rtf"), (.png, "Header_final.png"), (.jpeg, "Team.jpg"),
-            (.zip, "Schriften.zip"), (.folder, "Rechnungen"), (.png, "Bildschirmfoto 2026-10-09.png"),
-            (.commaSeparatedText, "Export.csv"), (.jpeg, "IMG_2042.jpg"), (.folder, "Vorlagen"),
-            (.plainText, "Ideen.txt"), (.png, "Mockup_A.png"), (.mpeg4Movie, "Demo.mp4"),
-            (.folder, "Diverses"), (.png, "Mockup_B.png"), (.rtf, "Vertrag.rtf"), (.jpeg, "Skizze.jpg"),
-            (.folder, "Privat"), (.zip, "Backup.zip"), (.png, "Favicon.png"), (.plainText, "Changelog.txt"),
+            (.folder, "Projects"), (.png, "Screenshot 2026-10-12.png"), (.plainText, "Notes.txt"),
+            (.folder, "Clients"), (.jpeg, "Moodboard.jpg"), (.zip, "Archive.zip"), (.rtf, "Briefing.rtf"),
+            (.folder, "Export"), (.png, "Logo_v3.png"), (.mpeg4Movie, "Teaser.mp4"), (.commaSeparatedText, "Hours.csv"),
+            (.folder, "Old"), (.jpeg, "IMG_2041.jpg"), (.png, "Icon-Draft.png"), (.plainText, "Todo.txt"),
+            (.folder, "Photos"), (.rtf, "Quote.rtf"), (.png, "Header_final.png"), (.jpeg, "Team.jpg"),
+            (.zip, "Fonts.zip"), (.folder, "Invoices"), (.png, "Screenshot 2026-10-09.png"),
+            (.commaSeparatedText, "Export.csv"), (.jpeg, "IMG_2042.jpg"), (.folder, "Templates"),
+            (.plainText, "Ideas.txt"), (.png, "Mockup_A.png"), (.mpeg4Movie, "Demo.mp4"),
+            (.folder, "Misc"), (.png, "Mockup_B.png"), (.rtf, "Contract.rtf"), (.jpeg, "Sketch.jpg"),
+            (.folder, "Private"), (.zip, "Backup.zip"), (.png, "Favicon.png"), (.plainText, "Changelog.txt"),
         ]
         let cell = CGSize(width: 104, height: 102)
         var cells: [CGRect] = []
@@ -201,8 +206,8 @@ struct MakeScreenshots {
     @discardableResult
     static func comparisonDivider(draw: Bool = true) -> [CGRect] {
         let x = screen.width / 2
-        let labels = [("Vorher", CGRect(x: x - 22 - 84, y: menuBarHeight + 22, width: 84, height: 32)),
-                      ("Nachher", CGRect(x: x + 22, y: menuBarHeight + 22, width: 98, height: 32))]
+        let labels = [("Before", CGRect(x: x - 22 - 84, y: menuBarHeight + 22, width: 84, height: 32)),
+                      ("After", CGRect(x: x + 22, y: menuBarHeight + 22, width: 74, height: 32))]
         let keys = ["⌃", "⌥", "⌘", "D"]
         let keySize = CGSize(width: 46, height: 44), gap: CGFloat = 8, padding: CGFloat = 14
         let width = CGFloat(keys.count) * keySize.width + CGFloat(keys.count - 1) * gap + 2 * padding
@@ -242,7 +247,7 @@ struct MakeScreenshots {
             CGRect(x: frame.minX, y: frame.minY, width: frame.width, height: 44).fill()
             color(0xE3E5EB).setFill()
             CGRect(x: frame.minX, y: frame.minY + 44, width: frame.width, height: 1).fill()
-            text("Entwurf", font: .systemFont(ofSize: 13, weight: .semibold), color: color(0x3A3F4D),
+            text("Draft", font: .systemFont(ofSize: 13, weight: .semibold), color: color(0x3A3F4D),
                  in: CGRect(x: frame.minX, y: frame.minY + 14, width: frame.width, height: 18), alignment: .center)
 
             let picture = CGRect(x: frame.minX + 28, y: frame.minY + 72, width: frame.width - 56, height: 150)
@@ -264,10 +269,10 @@ struct MakeScreenshots {
     /// The app's menu, redrawn item for item – an open NSMenu cannot be rendered off screen.
     static func appMenu() {
         let rows: [(title: String?, checked: Bool, shortcut: String)] = [
-            ("Schreibtischsymbole einblenden", false, "⌃⌥⌘D"), (nil, false, ""),
-            ("Widgets ebenfalls ausblenden", true, ""), ("Vollständig ausblenden (Finder-Neustart)", true, ""),
-            ("Tastenkürzel ändern …", false, ""), ("Beim Anmelden starten", true, ""), (nil, false, ""),
-            ("Einführung anzeigen", false, ""), ("DeskHide beenden", false, "⌘Q"),
+            (L("menu.show"), false, "⌃⌥⌘D"), (nil, false, ""),
+            (L("menu.widgets"), true, ""), (L("menu.thorough"), true, ""),
+            (L("menu.shortcut"), false, ""), (L("menu.login"), true, ""), (nil, false, ""),
+            (L("menu.introduction"), false, ""), (L("menu.quit"), false, "⌘Q"),
         ]
         let rowHeight: CGFloat = 25, separatorHeight: CGFloat = 11, padding: CGFloat = 6, width: CGFloat = 348
         let height = rows.reduce(2 * padding) { $0 + ($1.title == nil ? separatorHeight : rowHeight) }
